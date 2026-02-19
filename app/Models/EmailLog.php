@@ -51,7 +51,7 @@ final class EmailLog extends Model
     {
         return [
             'success' => 'boolean',
-            'sent_at' => 'datetime',
+            'sent_at' => 'datetime:Y-m-d H:i:s',
         ];
     }
 

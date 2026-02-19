@@ -48,7 +48,7 @@ final class BackupLog extends Model
         return [
             'success' => 'boolean',
             'file_size' => 'integer',
-            'ran_at' => 'datetime',
+            'ran_at' => 'datetime:Y-m-d H:i:s',
         ];
     }
 

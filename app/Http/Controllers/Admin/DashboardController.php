@@ -12,7 +12,8 @@ use App\Models\BookingPassenger;
 use App\Models\Partner;
 use App\Models\TourDeparture;
 use Carbon\Carbon;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Admin Dashboard Controller.
@@ -20,7 +21,7 @@ use Illuminate\View\View;
  */
 final class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(): InertiaResponse
     {
         $today = Carbon::today();
         $weekStart = Carbon::now()->startOfWeek();
@@ -105,7 +106,7 @@ final class DashboardController extends Controller
             ->orderByDesc('outstanding_balance')
             ->paginate(5, ['*'], 'partners_page');
 
-        return view('admin.dashboard', compact(
+        return Inertia::render('admin/dashboard', compact(
             'todaysBookingsCount',
             'weeklyPassengersCount',
             'pendingRequestsCount',

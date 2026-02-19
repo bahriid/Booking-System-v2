@@ -14,7 +14,8 @@ use App\Models\TourDeparture;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Handles reporting and analytics for admin panel.
@@ -24,7 +25,7 @@ final class ReportsController extends Controller
     /**
      * Display the reports dashboard.
      */
-    public function index(Request $request): View
+    public function index(Request $request): InertiaResponse
     {
         $period = $request->query('period', 'month');
         $startDate = $this->getStartDate($period);
@@ -48,15 +49,16 @@ final class ReportsController extends Controller
         // Upcoming departures capacity
         $upcomingCapacity = $this->getUpcomingCapacity();
 
-        return view('admin.reports.index', compact(
-            'period',
-            'stats',
-            'bookingsByStatus',
-            'revenueByTour',
-            'topPartners',
-            'bookingsTrend',
-            'upcomingCapacity'
-        ));
+        return Inertia::render('admin/reports/index', [
+            'period' => $period,
+            'stats' => $stats,
+            'bookingsByStatus' => $bookingsByStatus,
+            'revenueByTour' => $revenueByTour,
+            'topPartners' => $topPartners,
+            'bookingsTrend' => $bookingsTrend,
+            'upcomingCapacity' => $upcomingCapacity,
+            'filters' => $request->only(['period']),
+        ]);
     }
 
     /**
@@ -117,16 +119,15 @@ final class ReportsController extends Controller
             })
             ->count();
 
+        $totalBookings = $confirmedBookings + $cancelledBookings;
+        $cancellationRate = $totalBookings > 0 ? ($cancelledBookings / $totalBookings) * 100 : 0;
+
         return [
-            'confirmed_bookings' => $confirmedBookings,
-            'total_revenue' => $totalRevenue,
-            'paid_amount' => $paidAmount,
-            'outstanding_amount' => $outstandingAmount,
-            'total_passengers' => $totalPassengers,
-            'cancelled_bookings' => $cancelledBookings,
-            'penalty_amount' => $penaltyAmount,
-            'active_partners' => $activePartners,
-            'avg_booking_value' => $confirmedBookings > 0 ? $totalRevenue / $confirmedBookings : 0,
+            'totalBookings' => $confirmedBookings,
+            'totalPassengers' => $totalPassengers,
+            'totalRevenue' => (float) $totalRevenue,
+            'avgBookingValue' => $confirmedBookings > 0 ? (float) $totalRevenue / $confirmedBookings : 0,
+            'cancellationRate' => round($cancellationRate, 1),
         ];
     }
 
@@ -139,9 +140,13 @@ final class ReportsController extends Controller
             ->select('status', DB::raw('count(*) as count'))
             ->groupBy('status')
             ->get()
-            ->mapWithKeys(function ($item) {
-                return [$item->status->value => $item->count];
+            ->map(function ($item) {
+                return [
+                    'status' => $item->status->value,
+                    'count' => (int) $item->count,
+                ];
             })
+            ->values()
             ->toArray();
     }
 
@@ -153,7 +158,6 @@ final class ReportsController extends Controller
         return Tour::select('tours.id', 'tours.name', 'tours.code')
             ->selectRaw('COUNT(DISTINCT bookings.id) as bookings_count')
             ->selectRaw('SUM(bookings.total_amount) as total_revenue')
-            ->selectRaw('SUM(CASE WHEN bookings.payment_status = ? THEN bookings.total_amount ELSE 0 END) as paid_revenue', [PaymentStatus::PAID->value])
             ->join('tour_departures', 'tours.id', '=', 'tour_departures.tour_id')
             ->join('bookings', 'tour_departures.id', '=', 'bookings.tour_departure_id')
             ->where('bookings.status', BookingStatus::CONFIRMED)
@@ -161,7 +165,13 @@ final class ReportsController extends Controller
             ->groupBy('tours.id', 'tours.name', 'tours.code')
             ->orderByDesc('total_revenue')
             ->limit(10)
-            ->get();
+            ->get()
+            ->map(fn ($t) => [
+                'tour_name' => $t->name,
+                'revenue' => (float) $t->total_revenue,
+                'bookings' => (int) $t->bookings_count,
+            ])
+            ->values();
     }
 
     /**
@@ -172,14 +182,19 @@ final class ReportsController extends Controller
         return Partner::select('partners.id', 'partners.name', 'partners.type')
             ->selectRaw('COUNT(bookings.id) as bookings_count')
             ->selectRaw('SUM(bookings.total_amount) as total_revenue')
-            ->selectRaw('SUM(CASE WHEN bookings.payment_status = ? THEN bookings.total_amount ELSE 0 END) as paid_amount', [PaymentStatus::PAID->value])
             ->join('bookings', 'partners.id', '=', 'bookings.partner_id')
             ->where('bookings.status', BookingStatus::CONFIRMED)
             ->whereBetween('bookings.created_at', [$startDate, $endDate])
             ->groupBy('partners.id', 'partners.name', 'partners.type')
             ->orderByDesc('bookings_count')
             ->limit(10)
-            ->get();
+            ->get()
+            ->map(fn ($p) => [
+                'name' => $p->name,
+                'bookings' => (int) $p->bookings_count,
+                'revenue' => (float) $p->total_revenue,
+            ])
+            ->values();
     }
 
     /**
@@ -196,11 +211,14 @@ final class ReportsController extends Controller
             ->pluck('count', 'date')
             ->toArray();
 
-        // Fill in missing dates
+        // Fill in missing dates and return as array of objects
         $result = [];
         for ($i = 29; $i >= 0; $i--) {
             $date = now()->subDays($i)->format('Y-m-d');
-            $result[$date] = $data[$date] ?? 0;
+            $result[] = [
+                'date' => $date,
+                'count' => $data[$date] ?? 0,
+            ];
         }
 
         return $result;
@@ -226,15 +244,10 @@ final class ReportsController extends Controller
                     : 0;
 
                 return [
-                    'id' => $departure->id,
-                    'tour' => $departure->tour?->name ?? 'N/A',
-                    'tour_code' => $departure->tour?->code ?? '-',
-                    'date' => $departure->date->format('d/m/Y'),
-                    'time' => $departure->time,
-                    'capacity' => $departure->capacity,
-                    'booked' => $departure->booked_seats,
-                    'remaining' => $departure->remaining_seats,
-                    'utilization' => $utilizationPercent,
+                    'tour_name' => $departure->tour?->name ?? 'N/A',
+                    'date' => $departure->date->format('Y-m-d'),
+                    'capacity' => (int) $departure->capacity,
+                    'booked' => (int) $departure->booked_seats,
                 ];
             });
     }

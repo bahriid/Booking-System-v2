@@ -215,7 +215,7 @@ final class DatabaseSeeder extends Seeder
                 $month = (int) $currentDate->format('n');
 
                 // Only create departures within tour's seasonality
-                if ($tour->isInSeason($month)) {
+                if ($tour->isInSeason($currentDate)) {
                     // Assign driver to departures in the next 2 weeks
                     $isUpcoming = $currentDate->diffInDays(now()) <= 14;
 

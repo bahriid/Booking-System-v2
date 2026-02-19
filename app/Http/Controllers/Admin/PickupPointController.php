@@ -9,7 +9,8 @@ use App\Http\Requests\Admin\StorePickupPointRequest;
 use App\Http\Requests\Admin\UpdatePickupPointRequest;
 use App\Models\PickupPoint;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Admin Pickup Point CRUD Controller.
@@ -20,19 +21,19 @@ final class PickupPointController extends Controller
     /**
      * Display a listing of pickup points.
      */
-    public function index(): View
+    public function index(): InertiaResponse
     {
         $pickupPoints = PickupPoint::ordered()->paginate(20);
 
-        return view('admin.pickup-points.index', compact('pickupPoints'));
+        return Inertia::render('admin/pickup-points/index', compact('pickupPoints'));
     }
 
     /**
      * Show the form for creating a new pickup point.
      */
-    public function create(): View
+    public function create(): InertiaResponse
     {
-        return view('admin.pickup-points.create');
+        return Inertia::render('admin/pickup-points/create');
     }
 
     /**
@@ -59,9 +60,9 @@ final class PickupPointController extends Controller
     /**
      * Show the form for editing the specified pickup point.
      */
-    public function edit(PickupPoint $pickupPoint): View
+    public function edit(PickupPoint $pickupPoint): InertiaResponse
     {
-        return view('admin.pickup-points.edit', compact('pickupPoint'));
+        return Inertia::render('admin/pickup-points/edit', compact('pickupPoint'));
     }
 
     /**

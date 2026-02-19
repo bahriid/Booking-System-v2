@@ -10,7 +10,8 @@ use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Admin User CRUD Controller.
@@ -21,27 +22,27 @@ final class UserController extends Controller
     /**
      * Display a listing of users.
      */
-    public function index(): View
+    public function index(): InertiaResponse
     {
         $users = User::query()
             ->whereIn('role', [UserRole::ADMIN, UserRole::DRIVER])
             ->orderBy('name')
             ->paginate(20);
 
-        return view('admin.users.index', compact('users'));
+        return Inertia::render('admin/users/index', compact('users'));
     }
 
     /**
      * Show the form for creating a new user.
      */
-    public function create(): View
+    public function create(): InertiaResponse
     {
         $roles = [
-            UserRole::ADMIN->value => UserRole::ADMIN->label(),
-            UserRole::DRIVER->value => UserRole::DRIVER->label(),
+            ['value' => UserRole::ADMIN->value, 'label' => UserRole::ADMIN->label()],
+            ['value' => UserRole::DRIVER->value, 'label' => UserRole::DRIVER->label()],
         ];
 
-        return view('admin.users.create', compact('roles'));
+        return Inertia::render('admin/users/create', compact('roles'));
     }
 
     /**
@@ -65,7 +66,7 @@ final class UserController extends Controller
     /**
      * Show the form for editing the specified user.
      */
-    public function edit(User $user): View
+    public function edit(User $user): InertiaResponse
     {
         // Only allow editing admin and driver users
         if (!in_array($user->role, [UserRole::ADMIN, UserRole::DRIVER])) {
@@ -73,11 +74,11 @@ final class UserController extends Controller
         }
 
         $roles = [
-            UserRole::ADMIN->value => UserRole::ADMIN->label(),
-            UserRole::DRIVER->value => UserRole::DRIVER->label(),
+            ['value' => UserRole::ADMIN->value, 'label' => UserRole::ADMIN->label()],
+            ['value' => UserRole::DRIVER->value, 'label' => UserRole::DRIVER->label()],
         ];
 
-        return view('admin.users.edit', compact('user', 'roles'));
+        return Inertia::render('admin/users/edit', compact('user', 'roles'));
     }
 
     /**

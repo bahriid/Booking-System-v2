@@ -43,6 +43,16 @@ final class Booking extends Model
     use SoftDeletes;
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'adults_count', 'children_count', 'infants_count',
+        'total_passengers', 'amount_paid', 'balance_due',
+    ];
+
+    /**
      * Get a display label for audit logs.
      */
     public function getAuditLabel(): string
@@ -83,9 +93,9 @@ final class Booking extends Model
             'payment_status' => PaymentStatus::class,
             'total_amount' => 'decimal:2',
             'penalty_amount' => 'decimal:2',
-            'suspended_until' => 'datetime',
-            'cancelled_at' => 'datetime',
-            'expired_at' => 'datetime',
+            'suspended_until' => 'datetime:Y-m-d H:i:s',
+            'cancelled_at' => 'datetime:Y-m-d H:i:s',
+            'expired_at' => 'datetime:Y-m-d H:i:s',
         ];
     }
 
@@ -160,6 +170,9 @@ final class Booking extends Model
      */
     public function getAdultsCountAttribute(): int
     {
+        if ($this->relationLoaded('passengers')) {
+            return $this->passengers->where('pax_type', PaxType::ADULT)->count();
+        }
         return $this->passengers()->where('pax_type', PaxType::ADULT)->count();
     }
 
@@ -168,6 +181,9 @@ final class Booking extends Model
      */
     public function getChildrenCountAttribute(): int
     {
+        if ($this->relationLoaded('passengers')) {
+            return $this->passengers->where('pax_type', PaxType::CHILD)->count();
+        }
         return $this->passengers()->where('pax_type', PaxType::CHILD)->count();
     }
 
@@ -176,6 +192,9 @@ final class Booking extends Model
      */
     public function getInfantsCountAttribute(): int
     {
+        if ($this->relationLoaded('passengers')) {
+            return $this->passengers->where('pax_type', PaxType::INFANT)->count();
+        }
         return $this->passengers()->where('pax_type', PaxType::INFANT)->count();
     }
 
@@ -184,6 +203,9 @@ final class Booking extends Model
      */
     public function getTotalPassengersAttribute(): int
     {
+        if ($this->relationLoaded('passengers')) {
+            return $this->passengers->count();
+        }
         return $this->passengers()->count();
     }
 

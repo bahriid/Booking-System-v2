@@ -8,7 +8,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Handles user profile operations including password change.
@@ -18,9 +19,9 @@ final class ProfileController extends Controller
     /**
      * Show the password change form.
      */
-    public function showChangePasswordForm(): View
+    public function showChangePasswordForm(): Response
     {
-        return view('profile.change-password');
+        return Inertia::render('profile/change-password');
     }
 
     /**

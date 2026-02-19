@@ -1,6 +1,6 @@
 <div class="d-flex flex-stack mb-5">
     <div>
-        <div class="fs-5 fw-bold text-gray-800">{{ $departure->date->format('F d, Y') }} at {{ $departure->time }}</div>
+        <div class="fs-5 fw-bold text-gray-800">{{ $departure->date->format('d/m/Y') }} at {{ $departure->time }}</div>
         <div class="text-muted">{{ $departure->tour?->code ?? '-' }}</div>
     </div>
     <div class="text-end">
@@ -47,18 +47,19 @@
                 <td>{{ $index + 1 }}</td>
                 <td class="fw-bold">
                     {{ $passenger->first_name }} {{ $passenger->last_name }}
-                    <div class="text-muted fs-7">{{ $passenger->booking_code }} - {{ $passenger->partner_name }}</div>
+                    <div class="text-muted fs-7">{{ $passenger->booking_code ?? '-' }} - {{ $passenger->partner_name ?? '-' }}</div>
                 </td>
                 <td>
                     @php
-                        $badgeClass = match($passenger->pax_type->value) {
+                        $paxValue = $passenger->pax_type?->value ?? 'adult';
+                        $badgeClass = match($paxValue) {
                             'adult' => 'badge-light-primary',
                             'child' => 'badge-light-info',
                             'infant' => 'badge-light-secondary',
                             default => 'badge-light',
                         };
                     @endphp
-                    <span class="badge {{ $badgeClass }}">{{ $passenger->pax_type->shortCode() }}</span>
+                    <span class="badge {{ $badgeClass }}">{{ $passenger->pax_type?->shortCode() ?? 'ADU' }}</span>
                 </td>
                 <td>
                     @if($passenger->pickupPoint)

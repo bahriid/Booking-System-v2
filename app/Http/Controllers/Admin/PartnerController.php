@@ -16,7 +16,8 @@ use App\Models\Partner;
 use App\Models\Tour;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Handles partner CRUD operations for admin panel.
@@ -26,7 +27,7 @@ final class PartnerController extends Controller
     /**
      * Display a listing of partners.
      */
-    public function index(): View
+    public function index(Request $request): InertiaResponse
     {
         $partners = Partner::withCount([
             'bookings' => function ($query) {
@@ -47,22 +48,26 @@ final class PartnerController extends Controller
                 $query->where('is_active', $status === 'active');
             })
             ->orderBy('name')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.partners.index', compact('partners'));
+        return Inertia::render('admin/partners/index', [
+            'partners' => $partners,
+            'filters' => $request->only(['search', 'type', 'status']),
+        ]);
     }
 
     /**
      * Show the form for creating a new partner.
      */
-    public function create(): View
+    public function create(): InertiaResponse
     {
         $tours = Tour::active()->orderBy('name')->get();
-        $partnerTypes = PartnerType::cases();
-        $seasons = Season::cases();
-        $paxTypes = PaxType::cases();
+        $partnerTypes = collect(PartnerType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()])->values()->all();
+        $seasons = collect(Season::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()])->values()->all();
+        $paxTypes = collect(PaxType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()])->values()->all();
 
-        return view('admin.partners.create', compact('tours', 'partnerTypes', 'seasons', 'paxTypes'));
+        return Inertia::render('admin/partners/create', compact('tours', 'partnerTypes', 'seasons', 'paxTypes'));
     }
 
     /**
@@ -80,7 +85,7 @@ final class PartnerController extends Controller
     /**
      * Display the specified partner.
      */
-    public function show(Partner $partner): View
+    public function show(Partner $partner): InertiaResponse
     {
         $partner->load([
             'bookings' => function ($query) {
@@ -103,18 +108,18 @@ final class PartnerController extends Controller
             $priceMatrix[$priceList->tour_id][$priceList->season->value][$priceList->pax_type->value] = $priceList->price;
         }
 
-        return view('admin.partners.show', compact('partner', 'tours', 'priceMatrix'));
+        return Inertia::render('admin/partners/show', compact('partner', 'tours', 'priceMatrix'));
     }
 
     /**
      * Show the form for editing the specified partner.
      */
-    public function edit(Partner $partner): View
+    public function edit(Partner $partner): InertiaResponse
     {
         $tours = Tour::active()->orderBy('name')->get();
-        $partnerTypes = PartnerType::cases();
-        $seasons = Season::cases();
-        $paxTypes = PaxType::cases();
+        $partnerTypes = collect(PartnerType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()])->values()->all();
+        $seasons = collect(Season::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()])->values()->all();
+        $paxTypes = collect(PaxType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()])->values()->all();
 
         // Build price matrix for form
         $priceMatrix = [];
@@ -122,7 +127,7 @@ final class PartnerController extends Controller
             $priceMatrix[$priceList->tour_id][$priceList->season->value][$priceList->pax_type->value] = $priceList->price;
         }
 
-        return view('admin.partners.create', compact('partner', 'tours', 'partnerTypes', 'seasons', 'paxTypes', 'priceMatrix'));
+        return Inertia::render('admin/partners/create', compact('partner', 'tours', 'partnerTypes', 'seasons', 'paxTypes', 'priceMatrix'));
     }
 
     /**

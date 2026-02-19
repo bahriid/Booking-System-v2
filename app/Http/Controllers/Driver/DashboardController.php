@@ -9,6 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Models\TourDeparture;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Handles driver dashboard and shift display.
@@ -18,7 +20,7 @@ final class DashboardController extends Controller
     /**
      * Display the driver dashboard with assigned shifts.
      */
-    public function index(Request $request): View
+    public function index(Request $request): InertiaResponse
     {
         $driver = $request->user();
         $selectedDate = $request->query('date')
@@ -58,7 +60,7 @@ final class DashboardController extends Controller
                 return $departure;
             });
 
-        // Upcoming shifts (next 7 days, excluding today/selected date, paginated)
+        // Upcoming shifts (next 30 days, excluding today/selected date, paginated)
         $upcomingShifts = TourDeparture::with([
             'tour',
             'bookings' => function ($query) {
@@ -72,7 +74,7 @@ final class DashboardController extends Controller
             ->whereHas('tour')
             ->forDriver($driver->id)
             ->where('date', '>', $selectedDate->toDateString())
-            ->where('date', '<=', $selectedDate->copy()->addDays(7)->toDateString())
+            ->where('date', '<=', $selectedDate->copy()->addDays(30)->toDateString())
             ->orderBy('date')
             ->orderBy('time')
             ->paginate(10, ['*'], 'upcoming_page')
@@ -86,12 +88,12 @@ final class DashboardController extends Controller
                 return $departure;
             });
 
-        return view('driver.dashboard', compact(
-            'driver',
-            'selectedDate',
-            'todaysShifts',
-            'upcomingShifts'
-        ));
+        return Inertia::render('driver/dashboard', [
+            'driver' => $driver,
+            'selectedDate' => $selectedDate->toDateString(),
+            'todaysShifts' => $todaysShifts,
+            'upcomingShifts' => $upcomingShifts,
+        ]);
     }
 
     /**
@@ -102,7 +104,7 @@ final class DashboardController extends Controller
         $driver = $request->user();
 
         // Ensure the driver is assigned to this departure
-        if ($departure->driver_id !== $driver->id) {
+        if ((int) $departure->driver_id !== (int) $driver->id) {
             abort(403, 'You are not assigned to this departure.');
         }
 
@@ -121,8 +123,8 @@ final class DashboardController extends Controller
         // Collect all passengers with booking info
         $passengers = $departure->bookings->flatMap(function ($booking) {
             return $booking->passengers->map(function ($passenger) use ($booking) {
-                $passenger->booking_code = $booking->booking_code;
-                $passenger->partner_name = $booking->partner->name;
+                $passenger->booking_code = $booking->booking_code ?? '-';
+                $passenger->partner_name = $booking->partner?->name ?? '-';
 
                 return $passenger;
             });
@@ -132,7 +134,7 @@ final class DashboardController extends Controller
         ])->values();
 
         // Pax summary
-        $paxCounts = $passengers->groupBy('pax_type')->map->count();
+        $paxCounts = $passengers->groupBy(fn($p) => $p->pax_type?->value ?? 'adult')->map->count();
 
         // Passengers with allergies
         $allergiesCount = $passengers->filter(fn($p) => !empty($p->allergies))->count();
@@ -141,9 +143,11 @@ final class DashboardController extends Controller
         $pickupSummary = $passengers
             ->groupBy(fn($p) => $p->pickupPoint?->name ?? 'Not specified')
             ->map(function ($group) {
+                $time = $group->first()->pickupPoint?->default_time;
+
                 return [
                     'count' => $group->count(),
-                    'time' => $group->first()->pickupPoint?->default_time ?? '-',
+                    'time' => $time ? (string) $time : '-',
                 ];
             });
 

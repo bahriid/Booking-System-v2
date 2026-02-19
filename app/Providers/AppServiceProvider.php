@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Enums\BookingStatus;
-use App\Models\Booking;
 use App\Models\Setting;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,62 +24,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Paginator::useBootstrapFive();
-
         $this->configureMailFromDatabase();
-
-        View::composer('layouts.admin', function ($view) {
-            $overbookingRequests = Booking::with(['partner', 'passengers'])
-                ->where('status', BookingStatus::SUSPENDED_REQUEST)
-                ->orderBy('created_at', 'desc')
-                ->limit(10)
-                ->get();
-
-            $recentBookings = Booking::with(['partner', 'passengers'])
-                ->where('status', BookingStatus::CONFIRMED)
-                ->where('created_at', '>=', now()->subHours(24))
-                ->orderBy('created_at', 'desc')
-                ->limit(10)
-                ->get();
-
-            $recentCancellations = Booking::with(['partner', 'passengers'])
-                ->where('status', BookingStatus::CANCELLED)
-                ->where('cancelled_at', '>=', now()->subHours(24))
-                ->orderBy('cancelled_at', 'desc')
-                ->limit(10)
-                ->get();
-
-            $notifications = collect();
-
-            foreach ($overbookingRequests as $booking) {
-                $notifications->push([
-                    'type' => 'overbooking',
-                    'booking' => $booking,
-                    'created_at' => $booking->created_at,
-                ]);
-            }
-
-            foreach ($recentBookings as $booking) {
-                $notifications->push([
-                    'type' => 'new_booking',
-                    'booking' => $booking,
-                    'created_at' => $booking->created_at,
-                ]);
-            }
-
-            foreach ($recentCancellations as $booking) {
-                $notifications->push([
-                    'type' => 'cancellation',
-                    'booking' => $booking,
-                    'created_at' => $booking->cancelled_at,
-                ]);
-            }
-
-            $notifications = $notifications->sortByDesc('created_at')->take(10);
-
-            $view->with('headerNotifications', $notifications);
-            $view->with('headerNotificationCount', $notifications->count());
-        });
     }
 
     /**

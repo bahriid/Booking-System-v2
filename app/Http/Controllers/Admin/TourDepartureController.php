@@ -18,7 +18,8 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Handles tour departure and calendar management for admin panel.
@@ -28,12 +29,16 @@ final class TourDepartureController extends Controller
     /**
      * Display the calendar view.
      */
-    public function index(Request $request): View
+    public function index(Request $request): InertiaResponse
     {
         $tours = Tour::active()->orderBy('name')->get();
-        $selectedTourId = $request->query('tour');
+        $selectedTourId = $request->query('tour') ? (int) $request->query('tour') : null;
 
-        return view('admin.calendar', compact('tours', 'selectedTourId'));
+        return Inertia::render('admin/calendar', [
+            'tours' => $tours,
+            'selectedTourId' => $selectedTourId,
+            'filters' => $request->only(['tour']),
+        ]);
     }
 
     /**
@@ -100,7 +105,7 @@ final class TourDepartureController extends Controller
     /**
      * Display the specified departure.
      */
-    public function show(TourDeparture $departure): View
+    public function show(TourDeparture $departure): InertiaResponse
     {
         $departure->load([
             'tour',
@@ -118,7 +123,7 @@ final class TourDepartureController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('admin.departures.show', compact('departure', 'drivers'));
+        return Inertia::render('admin/departures/show', compact('departure', 'drivers'));
     }
 
     /**

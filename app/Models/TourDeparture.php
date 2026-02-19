@@ -33,6 +33,13 @@ final class TourDeparture extends Model
     use HasFactory;
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['booked_seats', 'remaining_seats'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -56,7 +63,7 @@ final class TourDeparture extends Model
     protected function casts(): array
     {
         return [
-            'date' => 'date',
+            'date' => 'date:Y-m-d',
             'capacity' => 'integer',
             'status' => TourDepartureStatus::class,
             'season' => Season::class,

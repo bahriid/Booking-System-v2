@@ -9,14 +9,15 @@ use App\Models\BackupLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 final class BackupLogController extends Controller
 {
     /**
      * Display a listing of backup logs.
      */
-    public function index(): View
+    public function index(): InertiaResponse
     {
         $backupLogs = BackupLog::query()
             ->orderBy('ran_at', 'desc')
@@ -30,7 +31,7 @@ final class BackupLogController extends Controller
             'last_backup' => BackupLog::successful()->latest('ran_at')->first(),
         ];
 
-        return view('admin.backup-logs.index', compact('backupLogs', 'stats'));
+        return Inertia::render('admin/backup-logs/index', compact('backupLogs', 'stats'));
     }
 
     /**

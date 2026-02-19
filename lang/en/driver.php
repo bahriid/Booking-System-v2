@@ -14,8 +14,8 @@ return [
     'no_shifts_today' => 'No shifts assigned for today',
     'no_shifts_for_date' => 'No shifts assigned for this date',
     'no_upcoming_shifts' => 'No upcoming shifts',
-    'no_upcoming_shifts_7_days' => 'No upcoming shifts in the next 7 days',
-    'next_7_days' => 'Next 7 days',
+    'no_upcoming_shifts_7_days' => 'No upcoming shifts in the next 30 days',
+    'next_7_days' => 'Next 30 days',
     'tomorrow' => 'Tomorrow',
 
     // Shift details

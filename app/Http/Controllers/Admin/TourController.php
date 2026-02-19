@@ -10,7 +10,9 @@ use App\Http\Requests\Admin\UpdateTourRequest;
 use App\Models\PickupPoint;
 use App\Models\Tour;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Handles tour CRUD operations for admin panel.
@@ -20,7 +22,7 @@ final class TourController extends Controller
     /**
      * Display a listing of tours.
      */
-    public function index(): View
+    public function index(Request $request): InertiaResponse
     {
         $tours = Tour::withCount(['departures' => function ($query) {
             $query->where('date', '>=', now());
@@ -35,19 +37,23 @@ final class TourController extends Controller
                 $query->where('is_active', $status === 'active');
             })
             ->orderBy('name')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.tours.index', compact('tours'));
+        return Inertia::render('admin/tours/index', [
+            'tours' => $tours,
+            'filters' => $request->only(['search', 'status']),
+        ]);
     }
 
     /**
      * Show the form for creating a new tour.
      */
-    public function create(): View
+    public function create(): InertiaResponse
     {
         $pickupPoints = PickupPoint::active()->ordered()->get();
 
-        return view('admin.tours.create', compact('pickupPoints'));
+        return Inertia::render('admin/tours/create', compact('pickupPoints'));
     }
 
     /**
@@ -65,7 +71,7 @@ final class TourController extends Controller
     /**
      * Display the specified tour.
      */
-    public function show(Tour $tour): View
+    public function show(Tour $tour): InertiaResponse
     {
         $tour->load(['departures' => function ($query) {
             $query->where('date', '>=', now())
@@ -73,17 +79,17 @@ final class TourController extends Controller
                 ->limit(10);
         }]);
 
-        return view('admin.tours.show', compact('tour'));
+        return Inertia::render('admin/tours/show', compact('tour'));
     }
 
     /**
      * Show the form for editing the specified tour.
      */
-    public function edit(Tour $tour): View
+    public function edit(Tour $tour): InertiaResponse
     {
         $pickupPoints = PickupPoint::active()->ordered()->get();
 
-        return view('admin.tours.create', compact('tour', 'pickupPoints'));
+        return Inertia::render('admin/tours/create', compact('tour', 'pickupPoints'));
     }
 
     /**

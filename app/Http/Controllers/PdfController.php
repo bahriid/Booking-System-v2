@@ -98,7 +98,7 @@ final class PdfController extends Controller
         $user = $request->user();
 
         // Authorization check for drivers
-        if ($user->isDriver() && $departure->driver_id !== $user->id) {
+        if ($user->isDriver() && (int) $departure->driver_id !== (int) $user->id) {
             abort(403, 'You are not assigned to this departure.');
         }
 
@@ -116,13 +116,13 @@ final class PdfController extends Controller
         // Collect all passengers
         $passengers = $departure->bookings->flatMap(function ($booking) {
             return $booking->passengers->map(function ($passenger) use ($booking) {
-                $passenger->booking_code = $booking->booking_code;
-                $passenger->partner_name = $booking->partner->name;
+                $passenger->booking_code = $booking->booking_code ?? '-';
+                $passenger->partner_name = $booking->partner?->name ?? '-';
 
                 return $passenger;
             });
         })->sortBy([
-            fn ($a, $b) => strcmp($a->pickupPoint?->default_time ?? '99:99', $b->pickupPoint?->default_time ?? '99:99'),
+            fn ($a, $b) => strcmp((string) ($a->pickupPoint?->default_time ?? '99:99'), (string) ($b->pickupPoint?->default_time ?? '99:99')),
             fn ($a, $b) => strcmp($a->pickupPoint?->name ?? 'ZZZ', $b->pickupPoint?->name ?? 'ZZZ'),
             fn ($a, $b) => strcmp($a->last_name ?? '', $b->last_name ?? ''),
         ])->values();
@@ -171,7 +171,7 @@ final class PdfController extends Controller
         $user = $request->user();
 
         // Authorization check for drivers
-        if ($user->isDriver() && $departure->driver_id !== $user->id) {
+        if ($user->isDriver() && (int) $departure->driver_id !== (int) $user->id) {
             abort(403, 'You are not assigned to this departure.');
         }
 
@@ -189,13 +189,13 @@ final class PdfController extends Controller
         // Collect all passengers
         $passengers = $departure->bookings->flatMap(function ($booking) {
             return $booking->passengers->map(function ($passenger) use ($booking) {
-                $passenger->booking_code = $booking->booking_code;
-                $passenger->partner_name = $booking->partner->name;
+                $passenger->booking_code = $booking->booking_code ?? '-';
+                $passenger->partner_name = $booking->partner?->name ?? '-';
 
                 return $passenger;
             });
         })->sortBy([
-            fn ($a, $b) => strcmp($a->pickupPoint?->default_time ?? '99:99', $b->pickupPoint?->default_time ?? '99:99'),
+            fn ($a, $b) => strcmp((string) ($a->pickupPoint?->default_time ?? '99:99'), (string) ($b->pickupPoint?->default_time ?? '99:99')),
             fn ($a, $b) => strcmp($a->pickupPoint?->name ?? 'ZZZ', $b->pickupPoint?->name ?? 'ZZZ'),
             fn ($a, $b) => strcmp($a->last_name ?? '', $b->last_name ?? ''),
         ])->values();

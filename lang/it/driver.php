@@ -14,8 +14,8 @@ return [
     'no_shifts_today' => 'Nessun turno assegnato per oggi',
     'no_shifts_for_date' => 'Nessun turno assegnato per questa data',
     'no_upcoming_shifts' => 'Nessun turno in programma',
-    'no_upcoming_shifts_7_days' => 'Nessun turno in programma nei prossimi 7 giorni',
-    'next_7_days' => 'Prossimi 7 giorni',
+    'no_upcoming_shifts_7_days' => 'Nessun turno in programma nei prossimi 30 giorni',
+    'next_7_days' => 'Prossimi 30 giorni',
     'tomorrow' => 'Domani',
 
     // Shift details

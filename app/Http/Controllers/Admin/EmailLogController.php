@@ -7,14 +7,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\EmailLog;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 final class EmailLogController extends Controller
 {
     /**
      * Display a listing of email logs.
      */
-    public function index(Request $request): View
+    public function index(Request $request): InertiaResponse
     {
         $query = EmailLog::query()
             ->with('booking')
@@ -65,16 +66,20 @@ final class EmailLogController extends Controller
             'booking_cancelled' => 'Booking Cancelled',
         ];
 
-        return view('admin.email-logs.index', compact('emailLogs', 'eventTypes'));
+        return Inertia::render('admin/email-logs/index', [
+            'emailLogs' => $emailLogs,
+            'eventTypes' => $eventTypes,
+            'filters' => $request->only(['event_type', 'status', 'booking_code', 'email', 'date_from', 'date_to']),
+        ]);
     }
 
     /**
      * Display email log details.
      */
-    public function show(EmailLog $emailLog): View
+    public function show(EmailLog $emailLog): InertiaResponse
     {
         $emailLog->load('booking');
 
-        return view('admin.email-logs.show', compact('emailLog'));
+        return Inertia::render('admin/email-logs/show', compact('emailLog'));
     }
 }

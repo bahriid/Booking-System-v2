@@ -8,7 +8,8 @@ use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Handles partner dashboard.
@@ -18,7 +19,7 @@ final class DashboardController extends Controller
     /**
      * Display the partner dashboard.
      */
-    public function index(Request $request): View
+    public function index(Request $request): Response
     {
         $partner = $request->user()->partner;
 
@@ -59,7 +60,7 @@ final class DashboardController extends Controller
             ->select('bookings.*')
             ->paginate(4, ['*'], 'upcoming_page');
 
-        return view('partner.dashboard', compact(
+        return Inertia::render('partner/dashboard', compact(
             'partner',
             'bookingsThisMonth',
             'passengersThisMonth',

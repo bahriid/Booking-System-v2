@@ -17,7 +17,8 @@ use App\Models\TourDeparture;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Handles booking operations for partner portal.
@@ -27,7 +28,7 @@ final class BookingController extends Controller
     /**
      * Display a listing of partner's bookings.
      */
-    public function index(Request $request): View
+    public function index(Request $request): InertiaResponse
     {
         $partner = $request->user()->partner;
 
@@ -44,18 +45,24 @@ final class BookingController extends Controller
                 $query->whereHas('tourDeparture', fn ($q) => $q->where('tour_id', $tourId));
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         $tours = Tour::active()->orderBy('name')->get();
         $statuses = BookingStatus::cases();
 
-        return view('partner.bookings.index', compact('bookings', 'tours', 'statuses'));
+        return Inertia::render('partner/bookings/index', [
+            'bookings' => $bookings,
+            'tours' => $tours,
+            'statuses' => collect($statuses)->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
+            'filters' => $request->only(['search', 'status', 'tour']),
+        ]);
     }
 
     /**
      * Show the form for creating a new booking.
      */
-    public function create(Request $request): View
+    public function create(Request $request): InertiaResponse
     {
         $tours = Tour::active()
             ->whereHas('departures', function ($query) {
@@ -66,7 +73,7 @@ final class BookingController extends Controller
 
         $pickupPoints = PickupPoint::active()->ordered()->get();
 
-        return view('partner.bookings.create', compact('tours', 'pickupPoints'));
+        return Inertia::render('partner/bookings/create', compact('tours', 'pickupPoints'));
     }
 
     /**
@@ -135,7 +142,7 @@ final class BookingController extends Controller
     /**
      * Display the specified booking.
      */
-    public function show(Request $request, Booking $booking): View
+    public function show(Request $request, Booking $booking): InertiaResponse
     {
         $partner = $request->user()->partner;
 
@@ -146,13 +153,13 @@ final class BookingController extends Controller
 
         $booking->load(['tourDeparture.tour', 'passengers.pickupPoint']);
 
-        return view('partner.bookings.show', compact('booking'));
+        return Inertia::render('partner/bookings/show', compact('booking'));
     }
 
     /**
      * Show the form for editing the booking.
      */
-    public function edit(Request $request, Booking $booking): View
+    public function edit(Request $request, Booking $booking): InertiaResponse|RedirectResponse
     {
         $partner = $request->user()->partner;
 
@@ -178,7 +185,7 @@ final class BookingController extends Controller
         $booking->load(['tourDeparture.tour', 'passengers.pickupPoint']);
         $pickupPoints = PickupPoint::active()->ordered()->get();
 
-        return view('partner.bookings.edit', compact('booking', 'pickupPoints'));
+        return Inertia::render('partner/bookings/edit', compact('booking', 'pickupPoints'));
     }
 
     /**

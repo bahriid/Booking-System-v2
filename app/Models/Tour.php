@@ -33,6 +33,13 @@ final class Tour extends Model
     use SoftDeletes;
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['seasonality_range'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -56,8 +63,8 @@ final class Tour extends Model
     protected function casts(): array
     {
         return [
-            'seasonality_start' => 'date',
-            'seasonality_end' => 'date',
+            'seasonality_start' => 'date:Y-m-d',
+            'seasonality_end' => 'date:Y-m-d',
             'cutoff_hours' => 'integer',
             'default_capacity' => 'integer',
             'is_active' => 'boolean',

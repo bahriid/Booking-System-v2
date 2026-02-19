@@ -3,9 +3,278 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
-@source '../**/*.js';
+@source '../**/*.tsx';
+@source '../**/*.ts';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+
+    --color-background: oklch(1 0 0);
+    --color-foreground: oklch(0.145 0 0);
+    --color-card: oklch(1 0 0);
+    --color-card-foreground: oklch(0.145 0 0);
+    --color-popover: oklch(1 0 0);
+    --color-popover-foreground: oklch(0.145 0 0);
+    --color-primary: oklch(0.205 0 0);
+    --color-primary-foreground: oklch(0.985 0 0);
+    --color-secondary: oklch(0.97 0 0);
+    --color-secondary-foreground: oklch(0.205 0 0);
+    --color-muted: oklch(0.97 0 0);
+    --color-muted-foreground: oklch(0.556 0 0);
+    --color-accent: oklch(0.97 0 0);
+    --color-accent-foreground: oklch(0.205 0 0);
+    --color-destructive: oklch(0.577 0.245 27.325);
+    --color-destructive-foreground: oklch(0.577 0.245 27.325);
+    --color-border: oklch(0.922 0 0);
+    --color-input: oklch(0.922 0 0);
+    --color-ring: oklch(0.708 0 0);
+    --color-chart-1: oklch(0.646 0.222 41.116);
+    --color-chart-2: oklch(0.6 0.118 184.704);
+    --color-chart-3: oklch(0.398 0.07 227.392);
+    --color-chart-4: oklch(0.828 0.189 84.429);
+    --color-chart-5: oklch(0.769 0.188 70.08);
+    --color-sidebar: oklch(0.985 0 0);
+    --color-sidebar-foreground: oklch(0.145 0 0);
+    --color-sidebar-primary: oklch(0.205 0 0);
+    --color-sidebar-primary-foreground: oklch(0.985 0 0);
+    --color-sidebar-accent: oklch(0.97 0 0);
+    --color-sidebar-accent-foreground: oklch(0.205 0 0);
+    --color-sidebar-border: oklch(0.922 0 0);
+    --color-sidebar-ring: oklch(0.708 0 0);
+    --radius: 0.625rem;
+}
+
+/* FullCalendar — MagShip Theme */
+.fc-magship .fc {
+    --fc-border-color: #e2e8f0;
+    --fc-button-bg-color: #ffffff;
+    --fc-button-border-color: #e2e8f0;
+    --fc-button-text-color: #475569;
+    --fc-button-hover-bg-color: #f8fafc;
+    --fc-button-hover-border-color: #cbd5e1;
+    --fc-button-active-bg-color: #0f172a;
+    --fc-button-active-border-color: #0f172a;
+    --fc-today-bg-color: #f0f9ff;
+    --fc-page-bg-color: transparent;
+    --fc-neutral-bg-color: #f8fafc;
+    --fc-event-border-color: transparent;
+    --fc-small-font-size: 0.8em;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+}
+
+/* Toolbar */
+.fc-magship .fc .fc-toolbar {
+    margin-bottom: 1.25rem !important;
+}
+
+.fc-magship .fc .fc-toolbar-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+/* Buttons */
+.fc-magship .fc .fc-button {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    text-transform: none;
+    transition: all 0.15s ease;
+}
+
+.fc-magship .fc .fc-button:focus {
+    box-shadow: 0 0 0 2px #e2e8f0 !important;
+}
+
+.fc-magship .fc .fc-button-active,
+.fc-magship .fc .fc-button-active:hover {
+    color: #fff !important;
+    background: #0f172a !important;
+    border-color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2) !important;
+}
+
+.fc-magship .fc .fc-button-group {
+    gap: 2px;
+}
+
+.fc-magship .fc .fc-button-group > .fc-button {
+    border-radius: 8px !important;
+}
+
+.fc-magship .fc .fc-prev-button,
+.fc-magship .fc .fc-next-button {
+    padding: 6px 8px;
+}
+
+/* Day header */
+.fc-magship .fc .fc-col-header-cell {
+    padding: 10px 0;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    background: transparent;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.fc-magship .fc .fc-col-header-cell-cushion {
+    color: #64748b;
+}
+
+/* Day cells */
+.fc-magship .fc .fc-daygrid-day {
+    transition: background 0.15s ease;
+}
+
+.fc-magship .fc .fc-daygrid-day:hover {
+    background: #fafbfc;
+}
+
+.fc-magship .fc .fc-daygrid-day-number {
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    padding: 8px 10px;
+}
+
+.fc-magship .fc .fc-daygrid-day.fc-day-today {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%) !important;
+}
+
+.fc-magship .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+    color: #2563eb;
+    background: #dbeafe;
+    border-radius: 6px;
+    margin: 4px;
+    padding: 2px 6px;
+    line-height: 1.4;
+}
+
+.fc-magship .fc .fc-day-other .fc-daygrid-day-number {
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
+/* Events */
+.fc-magship .fc .fc-event {
+    border-radius: 6px !important;
+    font-size: 11px;
+    font-weight: 600;
+    border: none !important;
+    margin: 1px 2px !important;
+}
+
+.fc-magship .fc .fc-daygrid-event {
+    padding: 0 !important;
+}
+
+.fc-magship .fc .fc-event-main {
+    padding: 0;
+}
+
+/* More link */
+.fc-magship .fc .fc-daygrid-more-link {
+    font-size: 10px;
+    font-weight: 700;
+    color: #3b82f6;
+    margin-top: 2px;
+    padding: 1px 4px;
+    border-radius: 4px;
+}
+
+.fc-magship .fc .fc-daygrid-more-link:hover {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+/* List view */
+.fc-magship .fc .fc-list {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.fc-magship .fc .fc-list-day-cushion {
+    font-weight: 700;
+    font-size: 12px;
+    background: #f8fafc;
+    color: #334155;
+    padding: 10px 16px;
+}
+
+.fc-magship .fc .fc-list-event td {
+    padding: 10px 16px;
+    border-color: #f1f5f9;
+}
+
+.fc-magship .fc .fc-list-event:hover td {
+    background: #f8fafc;
+}
+
+.fc-magship .fc .fc-list-event-dot {
+    border-radius: 4px;
+    width: 8px;
+    height: 8px;
+}
+
+.fc-magship .fc .fc-list-event-title a {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+/* Time grid */
+.fc-magship .fc .fc-timegrid-slot-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.fc-magship .fc .fc-timegrid-event {
+    border-radius: 6px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Table borders */
+.fc-magship .fc td,
+.fc-magship .fc th {
+    border-color: #f1f5f9;
+}
+
+.fc-magship .fc .fc-scrollgrid {
+    border-color: #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Popover (more events) */
+.fc-magship .fc .fc-popover {
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.fc-magship .fc .fc-popover-header {
+    background: #f8fafc;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    padding: 8px 12px;
+}
+
+/* Remove inner padding from event for custom render */
+.fc-magship .fc .fc-daygrid-block-event .fc-event-main {
+    padding: 0;
 }

@@ -8,7 +8,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Handles sending password reset links via email.
@@ -18,9 +19,9 @@ final class ForgotPasswordController extends Controller
     /**
      * Show the forgot password form.
      */
-    public function showForm(): View
+    public function showForm(): Response
     {
-        return view('auth.forgot-password');
+        return Inertia::render('auth/forgot-password');
     }
 
     /**

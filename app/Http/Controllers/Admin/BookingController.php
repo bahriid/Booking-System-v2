@@ -22,7 +22,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -33,7 +34,7 @@ final class BookingController extends Controller
     /**
      * Display a listing of bookings.
      */
-    public function index(Request $request): View
+    public function index(Request $request): InertiaResponse
     {
         // Add create button flag for view
         $canCreate = true;
@@ -82,24 +83,28 @@ final class BookingController extends Controller
             });
         }
 
-        $bookings = $query->paginate(20);
+        $bookings = $query->paginate(20)->withQueryString();
 
         // Get filter options
         $partners = Partner::active()->orderBy('name')->get();
         $tours = Tour::active()->orderBy('name')->get();
-        $statuses = BookingStatus::cases();
+        $statuses = collect(BookingStatus::cases())->map(fn ($s) => [
+            'value' => $s->value,
+            'label' => $s->label(),
+        ])->values()->all();
 
         // Get pending approval count
         $pendingCount = Booking::where('status', BookingStatus::SUSPENDED_REQUEST)->count();
 
-        return view('admin.bookings.index', compact(
-            'bookings',
-            'partners',
-            'tours',
-            'statuses',
-            'pendingCount',
-            'canCreate'
-        ));
+        return Inertia::render('admin/bookings/index', [
+            'bookings' => $bookings,
+            'partners' => $partners,
+            'tours' => $tours,
+            'statuses' => $statuses,
+            'pendingCount' => $pendingCount,
+            'canCreate' => $canCreate,
+            'filters' => $request->only(['search', 'partner', 'status', 'tour', 'date_from', 'date_to']),
+        ]);
     }
 
     /**
@@ -121,7 +126,7 @@ final class BookingController extends Controller
     /**
      * Show the form for creating a new booking on behalf of a partner.
      */
-    public function create(): View
+    public function create(): InertiaResponse
     {
         $partners = Partner::active()->orderBy('name')->get();
 
@@ -134,7 +139,7 @@ final class BookingController extends Controller
 
         $pickupPoints = PickupPoint::active()->ordered()->get();
 
-        return view('admin.bookings.create', compact('partners', 'tours', 'pickupPoints'));
+        return Inertia::render('admin/bookings/create', compact('partners', 'tours', 'pickupPoints'));
     }
 
     /**
@@ -203,7 +208,7 @@ final class BookingController extends Controller
     /**
      * Display the specified booking.
      */
-    public function show(Booking $booking): View
+    public function show(Booking $booking): InertiaResponse
     {
         $booking->load([
             'partner',
@@ -213,13 +218,13 @@ final class BookingController extends Controller
             'payments',
         ]);
 
-        return view('admin.bookings.show', compact('booking'));
+        return Inertia::render('admin/bookings/show', compact('booking'));
     }
 
     /**
      * Show the form for editing the specified booking.
      */
-    public function edit(Booking $booking): View
+    public function edit(Booking $booking): InertiaResponse
     {
         $booking->load([
             'partner',
@@ -227,7 +232,7 @@ final class BookingController extends Controller
             'passengers.pickupPoint',
         ]);
 
-        return view('admin.bookings.edit', compact('booking'));
+        return Inertia::render('admin/bookings/edit', compact('booking'));
     }
 
     /**

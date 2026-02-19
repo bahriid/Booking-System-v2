@@ -19,14 +19,15 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 final class AccountingController extends Controller
 {
     /**
      * Display the accounting overview.
      */
-    public function index(Request $request): View
+    public function index(Request $request): InertiaResponse
     {
         // Get date range filter (default: current month)
         $startDate = $request->input('start_date')
@@ -114,13 +115,12 @@ final class AccountingController extends Controller
             ->get()
             ->map(function ($payment) {
                 return [
-                    'date' => $payment->paid_at,
+                    'date' => $payment->paid_at?->toDateTimeString(),
                     'type' => $payment->method === 'credit' ? 'refund' : 'payment',
-                    'partner' => $payment->partner,
+                    'partner_name' => $payment->partner?->name ?? 'Unknown',
                     'description' => $payment->notes ?? 'Payment received',
                     'method' => $payment->method,
-                    'amount' => $payment->amount,
-                    'booking_code' => null,
+                    'amount' => (float) $payment->amount,
                 ];
             });
 
@@ -132,13 +132,12 @@ final class AccountingController extends Controller
             ->get()
             ->map(function ($booking) {
                 return [
-                    'date' => $booking->created_at,
+                    'date' => $booking->created_at?->toDateTimeString(),
                     'type' => 'booking',
-                    'partner' => $booking->partner,
+                    'partner_name' => $booking->partner?->name ?? 'Unknown',
                     'description' => $booking->booking_code,
                     'method' => null,
-                    'amount' => -$booking->total_amount,
-                    'booking_code' => $booking->booking_code,
+                    'amount' => -(float) $booking->total_amount,
                 ];
             });
 
@@ -151,13 +150,12 @@ final class AccountingController extends Controller
             ->get()
             ->map(function ($booking) {
                 return [
-                    'date' => $booking->cancelled_at,
+                    'date' => $booking->cancelled_at?->toDateTimeString(),
                     'type' => 'penalty',
-                    'partner' => $booking->partner,
+                    'partner_name' => $booking->partner?->name ?? 'Unknown',
                     'description' => "No-show - {$booking->booking_code}",
                     'method' => null,
-                    'amount' => -$booking->penalty_amount,
-                    'booking_code' => $booking->booking_code,
+                    'amount' => -(float) $booking->penalty_amount,
                 ];
             });
 
@@ -189,31 +187,42 @@ final class AccountingController extends Controller
             ->orderBy('partner_id')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->groupBy('partner_id');
+            ->map(function ($booking) {
+                $balanceDue = (float) $booking->total_amount - (float) $booking->payments()->sum('booking_payment.amount');
+                return [
+                    'id' => $booking->id,
+                    'booking_code' => $booking->booking_code,
+                    'partner_name' => $booking->partner?->name ?? 'Unknown',
+                    'total_amount' => (float) $booking->total_amount,
+                    'balance_due' => $balanceDue,
+                ];
+            })
+            ->values();
 
         $unpaidBookingsCount = Booking::query()
             ->whereIn('status', [BookingStatus::CONFIRMED, BookingStatus::COMPLETED])
             ->where('payment_status', '!=', PaymentStatus::PAID)
             ->count();
 
-        return view('admin.accounting.index', compact(
-            'totalRevenue',
-            'totalPayments',
-            'paymentCount',
-            'totalPenalties',
-            'penaltyCount',
-            'totalOutstanding',
-            'partnersWithBalance',
-            'partners',
-            'transactions',
-            'partnersForDropdown',
-            'startDate',
-            'endDate',
-            'dateType',
-            'balanceFilter',
-            'unpaidBookings',
-            'unpaidBookingsCount'
-        ));
+        return Inertia::render('admin/accounting/index', [
+            'totalRevenue' => $totalRevenue,
+            'totalPayments' => $totalPayments,
+            'paymentCount' => $paymentCount,
+            'totalPenalties' => $totalPenalties,
+            'penaltyCount' => $penaltyCount,
+            'totalOutstanding' => $totalOutstanding,
+            'partnersWithBalance' => $partnersWithBalance,
+            'partners' => $partners,
+            'transactions' => $transactions,
+            'partnersForDropdown' => $partnersForDropdown,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'dateType' => $dateType,
+            'balanceFilter' => $balanceFilter,
+            'unpaidBookings' => $unpaidBookings,
+            'unpaidBookingsCount' => $unpaidBookingsCount,
+            'filters' => $request->only(['start_date', 'end_date', 'date_type', 'balance_filter']),
+        ]);
     }
 
     /**

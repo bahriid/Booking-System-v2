@@ -18,7 +18,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Admin Settings Controller.
@@ -29,7 +30,7 @@ final class SettingsController extends Controller
     /**
      * Display the settings page.
      */
-    public function index(): View
+    public function index(): InertiaResponse
     {
         // Get all settings organized by group
         $generalSettings = Setting::getGroup('general');
@@ -38,11 +39,14 @@ final class SettingsController extends Controller
         $languageSettings = Setting::getGroup('language');
         $voucherSettings = Setting::getGroup('voucher');
 
-        // Get lookup data for dropdowns
-        $timezones = Setting::getTimezones();
-        $currencies = Setting::getCurrencies();
-        $dateFormats = Setting::getDateFormats();
-        $languages = Setting::getLanguages();
+        // Get lookup data for dropdowns (convert associative arrays to indexed arrays for React)
+        $timezones = array_keys(Setting::getTimezones());
+        $currencies = array_keys(Setting::getCurrencies());
+        $dateFormats = array_keys(Setting::getDateFormats());
+        $languages = collect(Setting::getLanguages())->map(fn ($label, $code) => [
+            'code' => $code,
+            'label' => $label,
+        ])->values()->all();
 
         // Get pickup points for tab
         $pickupPoints = PickupPoint::orderBy('default_time')->get();
@@ -57,7 +61,7 @@ final class SettingsController extends Controller
             ->limit(10)
             ->get();
 
-        return view('admin.settings', compact(
+        return Inertia::render('admin/settings', compact(
             'generalSettings',
             'bookingSettings',
             'emailSettings',

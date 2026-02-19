@@ -11,7 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Handles resetting the user's password after receiving a reset token.
@@ -21,9 +22,9 @@ final class ResetPasswordController extends Controller
     /**
      * Show the password reset form.
      */
-    public function showForm(Request $request, string $token): View
+    public function showForm(Request $request, string $token): Response
     {
-        return view('auth.reset-password', [
+        return Inertia::render('auth/reset-password', [
             'token' => $token,
             'email' => $request->query('email', ''),
         ]);

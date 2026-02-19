@@ -36,6 +36,13 @@ final class Partner extends Model
     use SoftDeletes;
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['initials', 'outstanding_balance'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

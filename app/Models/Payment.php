@@ -53,7 +53,7 @@ final class Payment extends Model
     {
         return [
             'amount' => 'decimal:2',
-            'paid_at' => 'date',
+            'paid_at' => 'date:Y-m-d',
         ];
     }
 

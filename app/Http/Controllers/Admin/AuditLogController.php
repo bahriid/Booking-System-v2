@@ -7,14 +7,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 final class AuditLogController extends Controller
 {
     /**
      * Display a listing of audit logs.
      */
-    public function index(Request $request): View
+    public function index(Request $request): InertiaResponse
     {
         $query = AuditLog::query()
             ->with('user')
@@ -63,16 +64,21 @@ final class AuditLogController extends Controller
             'restored' => 'Restored',
         ];
 
-        return view('admin.audit-logs.index', compact('auditLogs', 'entityTypes', 'actions'));
+        return Inertia::render('admin/audit-logs/index', [
+            'auditLogs' => $auditLogs,
+            'entityTypes' => $entityTypes,
+            'actions' => $actions,
+            'filters' => $request->only(['action', 'entity_type', 'user_id', 'date_from', 'date_to']),
+        ]);
     }
 
     /**
      * Display audit log details.
      */
-    public function show(AuditLog $auditLog): View
+    public function show(AuditLog $auditLog): InertiaResponse
     {
         $auditLog->load('user');
 
-        return view('admin.audit-logs.show', compact('auditLog'));
+        return Inertia::render('admin/audit-logs/show', compact('auditLog'));
     }
 }
